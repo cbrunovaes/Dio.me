@@ -1,114 +1,16 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
-  <title>Ingressos Antecipados - Pulsars</title>
-  <!-- Importa a ferramenta oficial do Supabase para conversar com a API -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-</head>
-<body>
-  <div class="card">
-    <h1 id="nome-evento">Carregando evento...</h1>
-    <p id="data-horario"></p>
-    <div class="bandas">
-      <strong>Bandas:</strong>
-      <p id="lista-bandas">...</p>
-    </div>
-    <form id="form-ingresso">
-      <label for="inscrito">Seu Nome Completo (para a lista na porta):</label>
-      <input type="text" id="inscrito" required placeholder="Ex: Gustavo Ferreira">
-      <label for="contato">Seu WhatsApp ou @ do Instagram:</label>
-      <input type="text" id="contato" required placeholder="Ex: (13) 99999-9999">
-      <button type="submit" id="btn-pagar">Ir para pagamento</button>
-    </form>
-  </div>
-
-  <script>
-    // ==========================================
-    // CONFIGURAÇÃO DA API E DADOS DO CLAUDIO
-    // ==========================================
-    const SUPABASE_URL = 'SUA_URL_AQUI';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3eXdzd2JqcGRuc3l6c2N1enZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNjU0MDYsImV4cCI6MjEwNzg0MTQwNn0.KKa-LK7u0z48sB-5EOM3CW6o-TqYgG-QfecdGCLFl2U';
-    const MEU_WHATSAPP = '5513996872799'; // Coloque 55 + DDD + Seu Número (só números)
-    const MINHA_CHAVE_PIX = 'selopulsars@gmail.com';
-    const ID_EVENTO_ATUAL = 1; // ID 1 que criamos na tabela eventos
-
-    // Conecta o Frontend na API do Supabase
-    const banco = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    let nomeDoEventoAtual = '';
-
-    // ==========================================
-    // PASSO A: Puxar os dados do Evento ao abrir a página
-    // ==========================================
-    async function carregarEvento() {
-      const { data, error } = await banco
-        .from('eventos')
-        .select('*')
-        .eq('id', ID_EVENTO_ATUAL)
-        .single();
-
-      if (error) {
-        console.error('Erro ao buscar evento:', error);
-        document.getElementById('nome-evento').innerText = 'Erro ao carregar evento';
-        return;
-      }
-
-      nomeDoEventoAtual = data.nome;
-      document.getElementById('nome-evento').innerText = data.nome;
-      document.getElementById('data-horario').innerText = `Data: ${data.data} | Horário: ${data.horario}`;
-      document.getElementById('lista-bandas').innerText = data.bandas;
-    }
-
-    // ==========================================
-    // PASSO B: Salvar no banco + Redirecionar pro WhatsApp
-    // ==========================================
-    document.getElementById('form-ingresso').addEventListener('submit', async function(evento) {
-      evento.preventDefault(); // Impede a página de recarregar
-
-      const btn = document.getElementById('btn-pagar');
-      btn.disabled = true;
-      btn.innerText = 'Salvando seu pedido...';
-
-      const nomeInscrito = document.getElementById('inscrito').value.trim();
-      const contatoInscrito = document.getElementById('contato').value.trim();
-
-      // 1. Disparo 1 do seu diagrama: Salvar no banco o pedido de ingresso
-      const { error } = await banco
-        .from('ingressos')
-        .insert([
-          {
-            evento_id: ID_EVENTO_ATUAL,
-            inscrito: nomeInscrito,
-            contato: contatoInscrito,
-            status: 'Pendente',
-            categoria: 'Antecipado'
-          }
-        ]);
-
-      if (error) {
-        alert('Erro ao salvar pedido: ' + error.message);
-        btn.disabled = false;
-        btn.innerText = 'Ir para pagamento';
-        return;
-      }
-
-      // 2. Disparo 2 do seu diagrama: Montar mensagem formatada e abrir Zap do Claudio
-      const mensagem = `Olá! Me inscrevi na lista do evento *${nomeDoEventoAtual}*.\n\n`
-                     + `*Nome:* ${nomeInscrito}\n`
-                     + `*Contato:* ${contatoInscrito}\n\n`
-                     + `Vou realizar o Pix na chave: *${MINHA_CHAVE_PIX}* e enviar o comprovante aqui para confirmar meu ingresso!`;
-
-      const linkZap = `https://wa.me/${MEU_WHATSAPP}?text=${encodeURIComponent(mensagem)}`;
-      
-      // Redireciona a pessoa para o WhatsApp
-      window.location.href = linkZap;
-    });
-
-    // Inicia o carregamento quando a tela abre
-    carregarEvento();
-  </script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap" rel="stylesheet" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ingressos Antecipados - Pulsars</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
